@@ -17,21 +17,21 @@ interface AiResponse {
   summary?: string;
 }
 
-// xAI API configuration. The API key lives in the backend environment
-// (XAI_API_KEY) and is never sent to the client or logged.
-const XAI_API_URL = "https://api.x.ai/v1/chat/completions";
-const XAI_MODEL = "grok-4.6";
+// Groq API configuration. The API key lives in the backend environment
+// (GROQ_API_KEY) and is never sent to the client or logged.
+const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+const GROQ_MODEL = "openai/gpt-oss-120b";
 const REQUEST_TIMEOUT_MS = 30_000;
 
 /**
- * Returns the configured xAI API key, throwing a clear error when it is
+ * Returns the configured Groq API key, throwing a clear error when it is
  * missing. The value itself is never logged or returned to the client.
  */
-function getXaiApiKey(): string {
-  const key = process.env.XAI_API_KEY?.trim();
+function getGroqApiKey(): string {
+  const key = process.env.GROQ_API_KEY?.trim();
   if (!key) {
     throw new Error(
-      "XAI_API_KEY is not configured on this deployment. " +
+      "GROQ_API_KEY is not configured on this deployment. " +
         "Add it in the project's Keys/API keys settings and try again.",
     );
   }
@@ -46,7 +46,7 @@ interface XaiChatCompletion {
 
 /**
  * AI analysis of a pasted transcript for social-engineering and
- * clone-script patterns. Calls the xAI (Grok) API directly, server-side only.
+ * clone-script patterns. Calls the Groq API directly, server-side only.
  */
 export const analyzeTranscript = action({
   args: { transcript: v.string() },
@@ -61,18 +61,18 @@ export const analyzeTranscript = action({
 
     // Fail fast with a clear message when the key is missing, instead of the
     // API returning an opaque 401.
-    const apiKey = getXaiApiKey();
+    const apiKey = getGroqApiKey();
 
     let response: Response;
     try {
-      response = await fetch(XAI_API_URL, {
+      response = await fetch(GROQ_API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: XAI_MODEL,
+          model: GROQ_MODEL,
           messages: [
             {
               role: "system",
@@ -93,7 +93,8 @@ export const analyzeTranscript = action({
             },
           ],
           temperature: 0.2,
-          max_tokens: 2000,
+          max_completion_tokens: 2000,
+          response_format: { type: "json_object" },
           stream: false,
         }),
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
@@ -124,16 +125,16 @@ export const analyzeTranscript = action({
         (/api key/i.test(detail) && response.status === 400)
       ) {
         throw new Error(
-          "The xAI API rejected this deployment's API key (HTTP " +
+          "The Groq API rejected this deployment's API key (HTTP " +
             response.status +
             "). " +
             (detail ? detail + " " : "") +
-            "Verify XAI_API_KEY in the project's Keys/API keys settings (xAI keys start with 'xai-'), then try again.",
+            "Verify GROQ_API_KEY in the project's Keys/API keys settings, then try again.",
         );
       }
       if (response.status === 429) {
         throw new Error(
-          "The xAI API rate limit was reached. Please wait a moment and try again.",
+          "The Groq API rate limit was reached. Please wait a moment and try again.",
         );
       }
       throw new Error(
