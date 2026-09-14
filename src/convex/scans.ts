@@ -190,6 +190,47 @@ export const stats = query({
   },
 });
 
+/** Daily scan counts for the last N days, for the threat-trends chart. */
+export const dailyTrend = query({
+  args: { days: v.optional(v.number()) },
+  handler: async (ctx, { days = 14 }) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      return [] as { day: string; total: number; flagged: number }[];
+    }
+    const horizon = Math.min(Math.max(days, 1), 60);
+    const cutoff = Date.now() - horizon * 24 * 60 * 60 * 1000;
+    const scans = await ctx.db
+      .query("scans")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    // Bucket by local calendar day.
+    const buckets = new Map<string, { total: number; flagged: number }>();
+    const fmt = new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+    for (let i = horizon - 1; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+      buckets.set(fmt.format(d), { total: 0, flagged: 0 });
+    }
+    for (const s of scans) {
+      if (s.createdAt < cutoff) continue;
+      const key = fmt.format(new Date(s.createdAt));
+      const b = buckets.get(key);
+      if (b) {
+        b.total += 1;
+        if (s.verdict !== "authentic") b.flagged += 1;
+      }
+    }
+    return Array.from(buckets.entries()).map(([day, v]) => ({
+      day,
+      ...v,
+    }));
+  },
+});
+
 /** Remove a scan from history (owner only). */
 export const deleteScan = mutation({
   args: { id: v.id("scans") },

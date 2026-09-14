@@ -92,6 +92,18 @@ const schema = defineSchema(
     })
       .index("by_user", ["userId"])
       .index("by_user_recent", ["userId", "createdAt"]),
+
+    // Family/team safe words — secret challenge phrases a real caller can
+    // answer but a voice clone cannot. Metadata only, never the context
+    // that would reveal the word to a phisher probing the account.
+    safeWords: defineTable({
+      userId: v.id("users"),
+      label: v.string(), // who/what this protects, e.g. "Mom"
+      word: v.string(), // the secret phrase itself
+      createdAt: v.number(),
+    })
+      .index("by_user", ["userId"])
+      .index("by_user_label", ["userId", "label"]),
   },
   {
     schemaValidation: false,

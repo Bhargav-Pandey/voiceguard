@@ -16,8 +16,11 @@ import {
   CheckCircle2,
   FileSearch,
   Fingerprint,
+  GraduationCap,
+  KeyRound,
   Lock,
   Mic,
+  ShieldAlert,
   ShieldCheck,
   Sparkles,
   Waves,
@@ -36,14 +39,29 @@ const features = [
     body: "Paste a voicemail or call transcript. AI flags urgency scripts, payment pressure, and phrasing that betrays a synthetic speaker.",
   },
   {
+    icon: ShieldAlert,
+    title: "Red-flag phrase scanner",
+    body: "Eight scam-script patterns — urgency, OTP requests, wire pressure, secrecy demands — highlighted in your transcript before you even run the AI check.",
+  },
+  {
+    icon: KeyRound,
+    title: "Safe Word Vault",
+    body: "Agree on secret challenge phrases with the people you trust. A clone can copy the voice; it can't answer the question only real Mom would know.",
+  },
+  {
+    icon: GraduationCap,
+    title: "Scam Academy",
+    body: "Two-minute drills built from real voice-fraud playbooks. Train your instincts to spot the levers — emotion, secrecy, urgency — before the call comes.",
+  },
+  {
     icon: Fingerprint,
     title: "Trusted voiceprints",
     body: "Register the voices that matter — family, finance, execs. Get match alerts the moment a call claims to be them.",
   },
   {
     icon: BellRing,
-    title: "Instant verdicts",
-    body: "Authentic, inconclusive, or likely clone — with a confidence score and plain-language reasons you can act on.",
+    title: "Instant verdicts & reports",
+    body: "Authentic, inconclusive, or likely clone — with confidence scores, plain-language reasons, and a one-tap PNG report you can share with family or the bank.",
   },
   {
     icon: Lock,
@@ -53,7 +71,7 @@ const features = [
   {
     icon: BrainCircuit,
     title: "Always learning",
-    body: "Every scan refines your baseline. The more you verify, the sharper your personal clone shield becomes.",
+    body: "Every scan refines your baseline and builds your 14-day threat trend. The more you verify, the sharper your personal clone shield becomes.",
   },
 ];
 

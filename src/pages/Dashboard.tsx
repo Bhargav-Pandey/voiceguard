@@ -1,4 +1,5 @@
 import { GlassBackdrop, GlassLogo, GlassPanel, GlassPill, LiveWaveform, VerdictBadge } from "@/components/glass";
+import { ScamAcademy } from "@/components/ScamAcademy";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,22 +17,28 @@ import {
   type ScanFeatures,
   type ScanResult,
 } from "@/lib/analysis";
+import { pressureTier, scanRedFlags } from "@/lib/scamPatterns";
 import { cn } from "@/lib/utils";
 import { useAction, useMutation, useQuery } from "convex/react";
 import {
   AlertTriangle,
   AudioLines,
+  CheckCircle2,
+  Download,
   FileText,
   Fingerprint,
   History,
+  KeyRound,
   Loader2,
   Mic,
+  ShieldAlert,
   ShieldCheck,
   Sparkles,
   Square,
   Trash2,
+  TrendingUp,
 } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
@@ -125,6 +132,212 @@ function ResultCard({ result }: { result: ScanResult }) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Safe Word Vault                                                     */
+/* ------------------------------------------------------------------ */
+
+function SafeWordVaultPanel() {
+  const safeWords = useQuery(api.safewords.listMine);
+  const add = useMutation(api.safewords.add);
+  const remove = useMutation(api.safewords.remove);
+  const [label, setLabel] = useState("");
+  const [word, setWord] = useState("");
+  const [revealed, setRevealed] = useState<Record<string, boolean>>({});
+  const [busy, setBusy] = useState(false);
+
+  const submit = async () => {
+    if (!label.trim() || !word.trim()) return;
+    setBusy(true);
+    try {
+      await add({ label: label.trim(), word: word.trim() });
+      setLabel("");
+      setWord("");
+      toast.success("Safe word added");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not add safe word");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const list = safeWords ?? [];
+
+  return (
+    <GlassPanel className="p-5 sm:p-6">
+      <GlassPill>
+        <KeyRound className="size-3" /> Safe Word Vault
+      </GlassPill>
+      <h3 className="mt-3 text-lg font-semibold">Secrets a clone can't know</h3>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Agree on a challenge phrase with the people you trust. When "Mom" calls,
+        ask for the safe word — the voice may be perfect, the memory isn't.
+      </p>
+
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+        <Input
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          placeholder="Protects… e.g. Mom, CFO"
+          className="border-white/50 bg-white/40"
+        />
+        <Input
+          value={word}
+          onChange={(e) => setWord(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") void submit();
+          }}
+          placeholder="Secret phrase"
+          className="border-white/50 bg-white/40"
+        />
+        <Button
+          onClick={submit}
+          disabled={busy || !label.trim() || !word.trim()}
+          className="shrink-0"
+        >
+          {busy ? <Loader2 className="size-4 animate-spin" /> : "Add"}
+        </Button>
+      </div>
+
+      <div className="mt-4 space-y-2">
+        {list.length === 0 && (
+          <p className="glass-inset rounded-xl px-3 py-3 text-sm text-muted-foreground">
+            No safe words yet. Add your first — a phrase only you and the real
+            person would know.
+          </p>
+        )}
+        {list.map((sw) => (
+          <div
+            key={sw._id}
+            className="glass-inset flex items-center justify-between gap-3 rounded-xl px-3 py-2.5"
+          >
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <KeyRound className="size-4" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-medium">{sw.label}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {revealed[sw._id] ? sw.word : "••••••••"}
+                </p>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-xs text-muted-foreground"
+                onClick={() =>
+                  setRevealed((r) => ({ ...r, [sw._id]: !r[sw._id] }))
+                }
+              >
+                {revealed[sw._id] ? "Hide" : "Reveal"}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 text-muted-foreground hover:text-destructive"
+                onClick={async () => {
+                  try {
+                    await remove({ id: sw._id });
+                  } catch {
+                    toast.error("Could not remove safe word");
+                  }
+                }}
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </GlassPanel>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Red-flag highlighter                                                */
+/* ------------------------------------------------------------------ */
+
+function RedFlagPanel({ text }: { text: string }) {
+  const scan = useMemo(() => scanRedFlags(text), [text]);
+
+  if (text.trim().length < 12) return null;
+
+  const tier = pressureTier(scan.pressureScore);
+
+  return (
+    <div className="mt-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <GlassPill>
+          <ShieldAlert className="size-3" /> Red-flag scanner
+        </GlassPill>
+        <span
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold backdrop-blur-sm",
+            tier.cls,
+          )}
+        >
+          Pressure {scan.pressureScore}/100 · {tier.label}
+        </span>
+      </div>
+
+      {scan.hits.length > 0 ? (
+        <>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {Array.from(
+              scan.hits.reduce((m, h) => {
+                const entry = m.get(h.patternId) ?? { label: h.label, n: 0 };
+                entry.n += 1;
+                m.set(h.patternId, entry);
+                return m;
+              }, new Map<string, { label: string; n: number }>()),
+            ).map(([id, { label, n }]) => {
+              const p = scan.hits.find((h) => h.patternId === id)!;
+              return (
+                <span
+                  key={id}
+                  title={p.why}
+                  className="inline-flex cursor-help items-center gap-1.5 rounded-full border border-rose-300/50 bg-rose-400/15 px-3 py-1 text-xs font-medium text-rose-700"
+                >
+                  <AlertTriangle className="size-3" />
+                  {label}
+                  {n > 1 && <span className="tabular-nums">×{n}</span>}
+                </span>
+              );
+            })}
+          </div>
+          <div className="mt-3 space-y-2">
+            {scan.hits.slice(0, 6).map((h, i) => (
+              <div
+                key={`${h.start}-${i}`}
+                className="glass-inset rounded-xl px-3 py-2.5"
+              >
+                <p className="text-sm font-medium text-foreground">
+                  &ldquo;{h.excerpt}&rdquo;
+                </p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  {h.why}
+                </p>
+              </div>
+            ))}
+            {scan.hits.length > 6 && (
+              <p className="text-xs text-muted-foreground">
+                +{scan.hits.length - 6} more flagged phrase
+                {scan.hits.length - 6 === 1 ? "" : "s"}
+              </p>
+            )}
+          </div>
+        </>
+      ) : (
+        <p className="glass-inset mt-3 rounded-xl px-3 py-3 text-sm text-muted-foreground">
+          No known scam phrases detected. The AI transcript analysis below still
+          checks for subtler synthetic-speech tells.
+        </p>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Voice Shield panel (live mic scan)                                  */
 /* ------------------------------------------------------------------ */
 
@@ -132,6 +345,7 @@ function VoiceShieldPanel() {
   const voiceprints = useQuery(api.voiceprints.listMine) ?? [];
   const record = useMutation(api.scans.record);
   const [result, setResult] = useState<ScanResult | null>(null);
+  const resultRef = useRef<HTMLDivElement | null>(null);
 
   const handleFeatures = useCallback(
     async (features: VoiceFeatures) => {
@@ -248,8 +462,8 @@ function VoiceShieldPanel() {
       </div>
 
       {result && (
-        <div className="mt-6">
-          <ResultCard result={result} />
+        <div ref={resultRef} className="mt-6">
+          <ExportableResult result={result} exportRef={resultRef} />
         </div>
       )}
     </GlassPanel>
@@ -257,7 +471,62 @@ function VoiceShieldPanel() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Transcript analyzer (AI)                                            */
+/* Exportable result wrapper                                           */
+/* ------------------------------------------------------------------ */
+
+function ExportableResult({
+  result,
+  exportRef,
+}: {
+  result: ScanResult;
+  exportRef: React.RefObject<HTMLDivElement | null>;
+}) {
+  const [exporting, setExporting] = useState(false);
+
+  const exportPng = async () => {
+    const node = exportRef.current;
+    if (!node) return;
+    setExporting(true);
+    try {
+      const { snapdom } = await import("@zumer/snapdom");
+      const canvas = await snapdom.toCanvas(node, { fast: true });
+      const url = canvas.toDataURL("image/png");
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `echoguard-scan-${new Date().toISOString().slice(0, 10)}.png`;
+      a.click();
+      toast.success("Report downloaded");
+    } catch (e) {
+      console.error("Export failed:", e);
+      toast.error("Could not export the report image");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  return (
+    <div className="relative">
+      <ResultCard result={result} />
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={exportPng}
+        disabled={exporting}
+        className="absolute right-3 top-3 gap-1.5 border-white/50 bg-white/50 text-xs"
+      >
+        {exporting ? (
+          <Loader2 className="size-3.5 animate-spin" />
+        ) : (
+          <Download className="size-3.5" />
+        )}
+        PNG
+      </Button>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Transcript analyzer (AI + safe word + red flags)                    */
 /* ------------------------------------------------------------------ */
 
 const SAMPLE_SCRIPT =
@@ -268,9 +537,23 @@ const SAMPLE_SCRIPT =
 function TranscriptPanel() {
   const record = useMutation(api.scans.record);
   const analyze = useAction(api.ai.analyzeTranscript);
+  const safeWords = useQuery(api.safewords.listMine);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
+  const resultRef = useRef<HTMLDivElement | null>(null);
+
+  // Local safe-word verification against the pasted transcript. The words
+  // themselves stay in the vault; we check client-side for the panel display,
+  // and the backend checkTranscript query provides the same logic server-side.
+  const safeWordHit = useMemo(() => {
+    if (!safeWords || safeWords.length === 0 || !text) return null;
+    const lower = text.toLowerCase();
+    const hit = safeWords.find(
+      (sw) => sw.word.length >= 3 && lower.includes(sw.word.toLowerCase()),
+    );
+    return hit ?? null;
+  }, [safeWords, text]);
 
   const run = async () => {
     if (text.trim().length < 10) {
@@ -328,8 +611,9 @@ function TranscriptPanel() {
         Check a suspicious call script
       </h3>
       <p className="mt-1 text-sm text-muted-foreground">
-        Paste a transcript or voicemail text. AI reviews it for clone-scam
-        pressure tactics and unnatural phrasing.
+        Paste a transcript or voicemail text. Instant red-flag scanning runs in
+        your browser; AI reviews it for clone-scam pressure tactics and
+        unnatural phrasing.
       </p>
 
       <Textarea
@@ -369,9 +653,128 @@ function TranscriptPanel() {
         )}
       </div>
 
+      {safeWords && safeWords.length > 0 && (
+        <div className="mt-4">
+          {safeWordHit ? (
+            <div className="flex items-start gap-2.5 rounded-xl border border-emerald-400/50 bg-emerald-400/15 px-3.5 py-3">
+              <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600" />
+              <div>
+                <p className="text-sm font-medium text-emerald-800">
+                  Safe word present — &ldquo;{safeWordHit.label}&rdquo; phrase
+                  found
+                </p>
+                <p className="mt-0.5 text-xs text-emerald-700/80">
+                  The speaker used one of your agreed challenge phrases. If this
+                  is the person you think it is, verification passed.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-start gap-2.5 rounded-xl border border-amber-400/50 bg-amber-400/15 px-3.5 py-3">
+              <KeyRound className="mt-0.5 size-4 shrink-0 text-amber-600" />
+              <div>
+                <p className="text-sm font-medium text-amber-800">
+                  No safe word in this transcript
+                </p>
+                <p className="mt-0.5 text-xs text-amber-700/80">
+                  You have {safeWords.length} safe word
+                  {safeWords.length === 1 ? "" : "s"} in your vault — ask the
+                  caller for it before trusting this voice.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      <RedFlagPanel text={text} />
+
       {result && (
-        <div className="mt-5">
-          <ResultCard result={result} />
+        <div ref={resultRef} className="mt-5">
+          <ExportableResult result={result} exportRef={resultRef} />
+        </div>
+      )}
+    </GlassPanel>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Threat trends chart                                                 */
+/* ------------------------------------------------------------------ */
+
+function ThreatTrendsPanel() {
+  const trend = useQuery(api.scans.dailyTrend, { days: 14 });
+
+  if (trend === undefined) {
+    return (
+      <GlassPanel className="p-5">
+        <Skeleton className="h-5 w-40 bg-white/50" />
+        <Skeleton className="mt-4 h-36 w-full rounded-xl bg-white/40" />
+      </GlassPanel>
+    );
+  }
+
+  const max = Math.max(1, ...trend.map((d) => d.total));
+  const weekTotal = trend.reduce((s, d) => s + d.total, 0);
+  const weekFlagged = trend.reduce((s, d) => s + d.flagged, 0);
+
+  return (
+    <GlassPanel className="p-5 sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <GlassPill>
+          <TrendingUp className="size-3" /> Threat trends
+        </GlassPill>
+        <span className="text-xs text-muted-foreground">
+          {weekTotal} scan{weekTotal === 1 ? "" : "s"} ·{" "}
+          <span className={weekFlagged > 0 ? "font-medium text-rose-600" : ""}>
+            {weekFlagged} flagged
+          </span>{" "}
+          · last 14 days
+        </span>
+      </div>
+      <h3 className="mt-3 text-lg font-semibold">Your verification activity</h3>
+
+      {weekTotal === 0 ? (
+        <p className="glass-inset mt-4 rounded-xl px-3 py-3 text-sm text-muted-foreground">
+          No scans in the last two weeks. Run a scan and your trend chart will
+          build here.
+        </p>
+      ) : (
+        <div className="mt-4">
+          <div className="flex h-36 items-end gap-1.5">
+            {trend.map((d) => {
+              const totalH = Math.max(4, (d.total / max) * 100);
+              const flaggedH =
+                d.total > 0 ? (d.flagged / d.total) * totalH : 0;
+              return (
+                <div
+                  key={d.day}
+                  className="group relative flex min-w-0 flex-1 flex-col items-center"
+                  title={`${d.day}: ${d.total} scan${d.total === 1 ? "" : "s"}, ${d.flagged} flagged`}
+                >
+                  <div className="relative w-full max-w-6 overflow-hidden rounded-t-md bg-sky-400/40 transition-colors group-hover:bg-sky-400/60" style={{ height: `${totalH}%` }}>
+                    <div
+                      className="absolute inset-x-0 bottom-0 rounded-t-md bg-rose-500/80"
+                      style={{ height: `${(flaggedH / totalH) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-2 flex justify-between text-[10px] tabular-nums text-muted-foreground">
+            <span>{trend[0]?.day}</span>
+            <span>{trend[trend.length - 1]?.day}</span>
+          </div>
+          <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="size-2.5 rounded-sm bg-sky-400/60" /> scans
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="size-2.5 rounded-sm bg-rose-500/80" /> flagged
+              (clone or inconclusive)
+            </span>
+          </div>
         </div>
       )}
     </GlassPanel>
@@ -613,8 +1016,8 @@ export default function Dashboard() {
               Welcome{user?.name ? `, ${user.name}` : ""} — stay clone-safe
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Scan voices, check transcripts, and track every verification you
-              run.
+              Scan voices, check transcripts, train your instincts, and track
+              every verification you run.
             </p>
           </div>
           {stats && stats.total > 0 && (
@@ -654,10 +1057,16 @@ export default function Dashboard() {
               <FileText className="size-4" /> Transcript
             </TabsTrigger>
             <TabsTrigger
-              value="voiceprints"
+              value="vault"
               className="rounded-xl px-4 py-2 data-[state=active]:bg-white/70 data-[state=active]:shadow-sm"
             >
-              <Fingerprint className="size-4" /> Voiceprints
+              <KeyRound className="size-4" /> Safe Words
+            </TabsTrigger>
+            <TabsTrigger
+              value="academy"
+              className="rounded-xl px-4 py-2 data-[state=active]:bg-white/70 data-[state=active]:shadow-sm"
+            >
+              <Sparkles className="size-4" /> Scam Academy
             </TabsTrigger>
             <TabsTrigger
               value="history"
@@ -674,11 +1083,16 @@ export default function Dashboard() {
           <TabsContent value="transcript" className="mt-4">
             <TranscriptPanel />
           </TabsContent>
-          <TabsContent value="voiceprints" className="mt-4">
-            <VoiceprintsPanel />
+          <TabsContent value="vault" className="mt-4 grid gap-5 lg:grid-cols-2">
+            <SafeWordVaultPanel />
+            <ThreatTrendsPanel />
           </TabsContent>
-          <TabsContent value="history" className="mt-4">
+          <TabsContent value="academy" className="mt-4">
+            <ScamAcademy />
+          </TabsContent>
+          <TabsContent value="history" className="mt-4 grid gap-5 lg:grid-cols-2">
             <HistoryPanel />
+            <ThreatTrendsPanel />
           </TabsContent>
         </Tabs>
       </main>
