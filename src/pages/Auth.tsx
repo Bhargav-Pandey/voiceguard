@@ -108,7 +108,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
       <div className="flex min-h-screen flex-col items-center justify-center px-4 py-10">
         <div className="mb-8 flex flex-col items-center">
           <GlassLogo className="size-14 rounded-2xl" />
-          <p className="mt-3 text-lg font-bold tracking-tight">EchoGuard</p>
+          <p className="mt-3 text-lg font-bold tracking-tight">VoiceGuard</p>
           <p className="text-xs text-muted-foreground">AI voice clone shield</p>
         </div>
 

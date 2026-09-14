@@ -96,7 +96,7 @@ const steps = [
 const stats = [
   { value: "$890M", label: "lost to voice-clone fraud in 2025 alone" },
   { value: "3 sec", label: "of audio is enough to clone a voice" },
-  { value: "<1 min", label: "for EchoGuard to score a live call" },
+  { value: "<1 min", label: "for VoiceGuard to score a live call" },
 ];
 
 export default function Landing() {
@@ -112,7 +112,7 @@ export default function Landing() {
         <GlassPanel className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3">
           <Link to="/" className="flex items-center gap-3">
             <GlassLogo />
-            <span className="text-base font-bold tracking-tight">EchoGuard</span>
+            <span className="text-base font-bold tracking-tight">VoiceGuard</span>
           </Link>
           <nav className="hidden items-center gap-6 text-sm font-medium text-muted-foreground md:flex">
             <a href="#features" className="transition-colors hover:text-foreground">
@@ -154,7 +154,7 @@ export default function Landing() {
               </span>
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-              Voice cloning scams are rising fast. EchoGuard listens for the
+              Voice cloning scams are rising fast. VoiceGuard listens for the
               artifacts synthetic speech leaves behind — and gives you a clear
               verdict before you send money, codes, or trust.
             </p>
@@ -383,11 +383,11 @@ export default function Landing() {
         <GlassPanel className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 py-5 text-sm text-muted-foreground sm:flex-row">
           <div className="flex items-center gap-2">
             <GlassLogo className="size-7 rounded-lg" />
-            <span className="font-semibold text-foreground">EchoGuard</span>
+            <span className="font-semibold text-foreground">VoiceGuard</span>
             <span className="text-xs">© {new Date().getFullYear()}</span>
           </div>
           <p className="text-xs">
-            EchoGuard provides risk signals, not legal certification. Always
+            VoiceGuard provides risk signals, not legal certification. Always
             verify sensitive requests out-of-band.
           </p>
         </GlassPanel>

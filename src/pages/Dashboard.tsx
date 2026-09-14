@@ -493,7 +493,7 @@ function ExportableResult({
       const url = canvas.toDataURL("image/png");
       const a = document.createElement("a");
       a.href = url;
-      a.download = `echoguard-scan-${new Date().toISOString().slice(0, 10)}.png`;
+      a.download = `voiceguard-scan-${new Date().toISOString().slice(0, 10)}.png`;
       a.click();
       toast.success("Report downloaded");
     } catch (e) {
@@ -987,7 +987,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             <GlassLogo />
             <div>
-              <p className="text-sm font-semibold leading-tight">EchoGuard</p>
+              <p className="text-sm font-semibold leading-tight">VoiceGuard</p>
               <p className="text-xs text-muted-foreground">Voice clone shield</p>
             </div>
           </div>
