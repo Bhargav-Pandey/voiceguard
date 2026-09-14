@@ -59,6 +59,12 @@ export const analyzeTranscript = action({
     });
 
     if (!result.success || !result.data) {
+      if (/unauthorized|invalid token|401/i.test(result.error ?? "")) {
+        throw new Error(
+          "The AI gateway rejected this deployment's integration key (401 Unauthorized). " +
+            "Refresh VLY_INTEGRATION_KEY in the project's Keys/API keys settings and try again.",
+        );
+      }
       throw new Error(result.error || "AI analysis failed");
     }
 
