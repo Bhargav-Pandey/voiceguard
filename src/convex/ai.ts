@@ -40,7 +40,8 @@ function getXaiApiKey(): string {
 
 interface XaiChatCompletion {
   choices?: { message?: { content?: string } }[];
-  error?: { message?: string };
+  error?: string | { message?: string };
+  code?: string;
 }
 
 /**
@@ -106,19 +107,28 @@ export const analyzeTranscript = action({
     }
 
     if (!response.ok) {
-      // Read the error body for a message, but never include the auth header.
+      // Extract a readable detail from OpenAI-style ({error:{message}}) or
+      // xAI-style ({code, error: "..."}) error bodies. Never include headers.
       let detail = "";
       try {
         const body = (await response.json()) as XaiChatCompletion;
-        detail = body?.error?.message ?? "";
+        const err = body?.error;
+        detail =
+          typeof err === "string" ? err : (err?.message ?? "");
       } catch {
         detail = "";
       }
-      if (response.status === 401 || response.status === 403) {
+      if (
+        response.status === 401 ||
+        response.status === 403 ||
+        (/api key/i.test(detail) && response.status === 400)
+      ) {
         throw new Error(
-          "The xAI API rejected this deployment's API key (" +
+          "The xAI API rejected this deployment's API key (HTTP " +
             response.status +
-            "). Verify XAI_API_KEY in the project's Keys/API keys settings, then try again.",
+            "). " +
+            (detail ? detail + " " : "") +
+            "Verify XAI_API_KEY in the project's Keys/API keys settings (xAI keys start with 'xai-'), then try again.",
         );
       }
       if (response.status === 429) {
