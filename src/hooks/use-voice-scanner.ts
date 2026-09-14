@@ -200,7 +200,9 @@ export function useVoiceScanner(
   const startRef = useRef(0);
   const tickRef = useRef(0);
   const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   const cleanup = useCallback(() => {
     if (rafRef.current !== null) {

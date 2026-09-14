@@ -1,4 +1,4 @@
-import { GlassBackdrop, GlassLogo, GlassPanel } from "@/components/glass";
+import { GlassBackdrop, GlassLogo } from "@/components/glass";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Home } from "lucide-react";
