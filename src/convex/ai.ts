@@ -1,7 +1,7 @@
 "use node";
 
 import { v } from "convex/values";
-import { vly } from "../lib/vly-integrations";
+import { vly, getDeploymentToken } from "../lib/vly-integrations";
 import { action } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
@@ -33,6 +33,10 @@ export const analyzeTranscript = action({
       throw new Error("Transcript is too short to analyze (minimum 10 characters).");
     }
 
+    // Fail fast with a clear message when the key is missing, instead of the
+    // gateway returning an opaque 401. The value itself is never logged.
+    getDeploymentToken();
+
     const result = await vly.ai.completion({
       model: "gpt-4o-mini",
       messages: [
@@ -62,7 +66,8 @@ export const analyzeTranscript = action({
       if (/unauthorized|invalid token|401/i.test(result.error ?? "")) {
         throw new Error(
           "The AI gateway rejected this deployment's integration key (401 Unauthorized). " +
-            "Refresh VLY_INTEGRATION_KEY in the project's Keys/API keys settings and try again.",
+            "The key exists but is no longer valid — refresh VLY_INTEGRATION_KEY in the " +
+            "project's Keys/API keys settings, then try again.",
         );
       }
       throw new Error(result.error || "AI analysis failed");
