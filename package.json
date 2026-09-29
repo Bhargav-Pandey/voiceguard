@@ -1,4 +1,12 @@
 {
+  "name": "attendance-alert-system",
+  "private": true,
+  "scripts": {
+    "dev": "cd backend && if [ ! -x .venv/bin/python ]; then python3 -m venv .venv && .venv/bin/pip install -q -r requirements.txt; fi && exec .venv/bin/python -m uvicorn app:app --host 0.0.0.0 --port ${PORT:-3000}",
+    "start": "cd backend && if [ ! -x .venv/bin/python ]; then python3 -m venv .venv && .venv/bin/pip install -q -r requirements.txt; fi && exec .venv/bin/python -m uvicorn app:app --host 0.0.0.0 --port ${PORT:-3000}",
+    "seed": "python3 sample_data/seed_demo_data.py",
+    "test": "cd backend && PY=python3; [ -x .venv/bin/python ] && PY=.venv/bin/python; \"$PY\" smoke_test.py"
+  },
   "dependencies": {
     "@vly-ai/integrations": "^0.6.14"
   }

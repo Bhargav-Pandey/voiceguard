@@ -15,7 +15,10 @@ SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-change-me")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "480"))
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./attendance.db")
+# Default SQLite path is anchored to the backend directory so startup does not
+# depend on the process working directory.
+DEFAULT_SQLITE_PATH = BASE_DIR / "attendance.db"
+DATABASE_URL = os.getenv("DATABASE_URL") or f"sqlite:///{DEFAULT_SQLITE_PATH}"
 
 # Notification settings. DEMO_MODE avoids any real provider dependency.
 NOTIFICATION_MODE = os.getenv("NOTIFICATION_MODE", "demo")  # demo | live
