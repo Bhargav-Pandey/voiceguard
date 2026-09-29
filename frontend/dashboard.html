@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Attendance Alert System</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <span class="brand">📋 Attendance Alert System</span>
+    <nav></nav>
+    <span class="spacer"></span>
+    <div class="user-box" id="userBox"></div>
+  </header>
+
+  <main class="container">
+    <div class="page-header">
+      <div>
+        <h1>Dashboard</h1>
+        <div class="subtitle">Live attendance and notification overview</div>
+      </div>
+    </div>
+
+    <div class="card mb-2">
+      <div class="filters" style="margin-bottom:0">
+        <div class="field">
+          <label for="filterDate">Date</label>
+          <input type="date" id="filterDate" />
+        </div>
+        <div class="field">
+          <label for="filterSubject">Subject</label>
+          <select id="filterSubject"><option value="">All subjects</option></select>
+        </div>
+        <div class="field">
+          <label for="filterSemester">Semester</label>
+          <select id="filterSemester">
+            <option value="">All</option>
+            <option value="1">1</option><option value="2">2</option>
+            <option value="3">3</option><option value="4">4</option>
+            <option value="5">5</option><option value="6">6</option>
+            <option value="7">7</option><option value="8">8</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="filterDivision">Division</label>
+          <select id="filterDivision">
+            <option value="">All</option>
+            <option value="A">A</option><option value="B">B</option>
+            <option value="C">C</option>
+          </select>
+        </div>
+        <button class="btn btn-secondary" id="resetFilters">Reset</button>
+      </div>
+    </div>
+
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card tone-primary"><div class="stat-label">Total Students</div><div class="stat-value" id="statStudents">–</div></div>
+      <div class="stat-card"><div class="stat-label">Today's Lectures</div><div class="stat-value" id="statLectures">–</div></div>
+      <div class="stat-card tone-success"><div class="stat-label">Present Today</div><div class="stat-value" id="statPresent">–</div></div>
+      <div class="stat-card tone-danger"><div class="stat-label">Absent Today</div><div class="stat-value" id="statAbsent">–</div></div>
+      <div class="stat-card tone-primary"><div class="stat-label">Notifications Generated</div><div class="stat-value" id="statNotifGen">–</div></div>
+      <div class="stat-card tone-success"><div class="stat-label">Notifications Sent</div><div class="stat-value" id="statNotifSent">–</div></div>
+      <div class="stat-card tone-danger"><div class="stat-label">Notifications Failed</div><div class="stat-value" id="statNotifFailed">–</div></div>
+      <div class="stat-card tone-warning"><div class="stat-label">Average Attendance</div><div class="stat-value" id="statAverage">–</div></div>
+    </div>
+
+    <div class="alert alert-error hidden" id="statsAlert"></div>
+
+    <div class="card">
+      <h2>Today's Lectures</h2>
+      <div class="table-wrap" style="border:none;box-shadow:none">
+        <table>
+          <thead>
+            <tr>
+              <th>Subject</th><th>Lecture</th><th>Time</th><th>Present</th><th>Absent</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="lecturesBody">
+            <tr><td colspan="6" class="empty-state">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

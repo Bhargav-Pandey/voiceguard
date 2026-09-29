@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upload Attendance — Attendance Alert System</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <span class="brand">📋 Attendance Alert System</span>
+    <nav></nav>
+    <span class="spacer"></span>
+    <div class="user-box" id="userBox"></div>
+  </header>
+
+  <main class="container">
+    <div class="page-header">
+      <div>
+        <h1>Upload Attendance</h1>
+        <div class="subtitle">Excel format: Roll No | Student Name | Attendance (Present/Absent/P/A)</div>
+      </div>
+    </div>
+
+    <!-- Step 1: form -->
+    <div class="card" id="uploadCard">
+      <h2>1. Lecture details</h2>
+      <form id="uploadForm">
+        <div class="form-grid">
+          <div class="field">
+            <label for="subject">Subject</label>
+            <select id="subject" required></select>
+          </div>
+          <div class="field">
+            <label for="date">Date</label>
+            <input type="date" id="date" required />
+          </div>
+          <div class="field">
+            <label for="lectureNumber">Lecture Number</label>
+            <select id="lectureNumber" required>
+              <option value="1">1</option><option value="2">2</option>
+              <option value="3">3</option><option value="4">4</option>
+              <option value="5">5</option><option value="6">6</option>
+              <option value="7">7</option><option value="8">8</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="startTime">Start Time</label>
+            <input type="time" id="startTime" value="09:00" required />
+          </div>
+          <div class="field">
+            <label for="endTime">End Time</label>
+            <input type="time" id="endTime" value="10:00" required />
+          </div>
+          <div class="field">
+            <label for="file">Attendance Excel</label>
+            <input type="file" id="file" accept=".xlsx,.xls,.csv" required />
+          </div>
+        </div>
+        <div class="alert alert-error hidden mt-2" id="uploadAlert"></div>
+        <div class="flex mt-2">
+          <button type="submit" class="btn btn-primary" id="validateBtn">Validate &amp; Preview</button>
+          <a class="btn btn-secondary" href="/sample_data/sample_attendance.xlsx" download>Download sample format</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Step 2: preview -->
+    <div class="card hidden" id="previewCard">
+      <h2>2. Preview &amp; confirm</h2>
+      <div id="previewSummary"></div>
+      <div class="alert alert-error hidden" id="previewErrors"></div>
+      <div class="alert alert-warning hidden" id="unknownStudents"></div>
+      <div class="table-wrap mt-2" style="max-height:420px;overflow-y:auto">
+        <table>
+          <thead>
+            <tr><th>Row</th><th>Roll No</th><th>Student Name</th><th>Attendance</th></tr>
+          </thead>
+          <tbody id="previewBody"></tbody>
+        </table>
+      </div>
+      <div class="flex mt-2">
+        <button class="btn btn-success" id="confirmBtn">Confirm Import</button>
+        <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Step 3: result -->
+    <div class="card hidden" id="resultCard">
+      <h2>3. Result</h2>
+      <div id="resultSummary"></div>
+      <div class="flex mt-2">
+        <a class="btn btn-primary" id="resultAbsenteesLink" href="/absentees.html">View Absentees</a>
+        <a class="btn btn-secondary" id="resultNotificationsLink" href="/notifications.html">View Notifications</a>
+        <a class="btn btn-secondary" id="resultReportLink" href="/reports.html">Download Report</a>
+        <button class="btn btn-secondary" id="uploadAnotherBtn">Upload Another</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/upload.js"></script>
+</body>
+</html>

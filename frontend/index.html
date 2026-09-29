@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — Attendance Alert System</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <main class="login-wrap">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="login-logo">📋</div>
+        <h1>Attendance Alert System</h1>
+        <p class="text-muted">Faculty sign-in to manage attendance &amp; parent alerts</p>
+      </div>
+
+      <div id="loginAlert" class="alert alert-error hidden"></div>
+
+      <form id="loginForm" class="login-form">
+        <div class="field">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" autocomplete="username" required autofocus />
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" autocomplete="current-password" required />
+        </div>
+        <button type="submit" id="loginBtn" class="btn btn-primary" style="justify-content:center">Sign In</button>
+      </form>
+
+      <div class="login-hint">
+        <strong>Demo accounts:</strong><br />
+        admin / admin123 &nbsp;·&nbsp; faculty / faculty123
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script>
+    // Already signed in? Go straight to the dashboard.
+    if (getToken()) location.href = "/dashboard.html";
+
+    const returnTo = getQueryParam("returnTo");
+
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      clearAlert("#loginAlert");
+      const btn = document.getElementById("loginBtn");
+      btn.disabled = true;
+      btn.textContent = "Signing in…";
+
+      try {
+        const form = new FormData(e.target);
+        const body = new URLSearchParams({
+          username: form.get("username"),
+          password: form.get("password"),
+        });
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body,
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || "Login failed");
+
+        saveSession(data.access_token, {
+          username: data.username,
+          full_name: data.full_name,
+          role: data.role,
+        });
+        location.href = returnTo && returnTo.startsWith("/") ? returnTo : "/dashboard.html";
+      } catch (err) {
+        showAlert("#loginAlert", err.message);
+        btn.disabled = false;
+        btn.textContent = "Sign In";
+      }
+    });
+  </script>
+</body>
+</html>

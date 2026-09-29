@@ -1,4 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Database
+*.db
+*.sqlite3
+
+# Uploads
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Environment
+.env
 .env.local
-node_modules
-dist
-src/convex/_generated
+.env.keys
+
+# OS / editor
+.DS_Store
+Thumbs.db

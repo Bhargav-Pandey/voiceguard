@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reports — Attendance Alert System</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <span class="brand">📋 Attendance Alert System</span>
+    <nav></nav>
+    <span class="spacer"></span>
+    <div class="user-box" id="userBox"></div>
+  </header>
+
+  <main class="container">
+    <div class="page-header">
+      <div>
+        <h1>Reports</h1>
+        <div class="subtitle">Generate Excel reports from live database data</div>
+      </div>
+    </div>
+
+    <div class="alert alert-error hidden" id="reportsAlert"></div>
+
+    <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
+      <div class="card">
+        <h2>Daily Attendance</h2>
+        <p class="text-muted mt-0">Every attendance record for one day, per subject and lecture.</p>
+        <div class="field mb-1">
+          <label for="dailyDate">Date</label>
+          <input type="date" id="dailyDate" />
+        </div>
+        <button class="btn btn-primary" id="dailyBtn">Download Report</button>
+      </div>
+
+      <div class="card">
+        <h2>Overall Attendance</h2>
+        <p class="text-muted mt-0">Per-student totals and attendance percentage across all subjects.</p>
+        <button class="btn btn-primary" id="overallBtn">Download Report</button>
+      </div>
+
+      <div class="card">
+        <h2>Subject-wise Attendance</h2>
+        <p class="text-muted mt-0">Per-student attendance in each subject.</p>
+        <button class="btn btn-primary" id="subjectBtn">Download Report</button>
+      </div>
+
+      <div class="card">
+        <h2>Parent Notifications</h2>
+        <p class="text-muted mt-0">Full notification log with status and delivery times.</p>
+        <button class="btn btn-primary" id="notifBtn">Download Report</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      initProtectedPage();
+      document.getElementById("dailyDate").value = todayISO();
+
+      document.getElementById("dailyBtn").addEventListener("click", () => {
+        const date = document.getElementById("dailyDate").value;
+        if (!date) return showAlert("#reportsAlert", "Pick a date first.");
+        location.href = `/api/reports/daily?date=${date}`;
+      });
+      document.getElementById("overallBtn").addEventListener("click", () => {
+        location.href = "/api/reports/overall";
+      });
+      document.getElementById("subjectBtn").addEventListener("click", () => {
+        location.href = "/api/reports/subject-wise";
+      });
+      document.getElementById("notifBtn").addEventListener("click", () => {
+        location.href = "/api/reports/notifications";
+      });
+    });
+  </script>
+</body>
+</html>

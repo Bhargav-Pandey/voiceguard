@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Management — Attendance Alert System</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <span class="brand">📋 Attendance Alert System</span>
+    <nav></nav>
+    <span class="spacer"></span>
+    <div class="user-box" id="userBox"></div>
+  </header>
+
+  <main class="container">
+    <div class="page-header">
+      <div>
+        <h1>Student Management</h1>
+        <div class="subtitle">Students, parent contacts, and subjects</div>
+      </div>
+      <button class="btn btn-primary" id="addStudentBtn">+ Add Student</button>
+    </div>
+
+    <div class="card mb-2">
+      <div class="filters" style="margin-bottom:0">
+        <div class="field">
+          <label for="search">Search</label>
+          <input type="text" id="search" placeholder="Roll no or name…" />
+        </div>
+        <div class="field">
+          <label for="semester">Semester</label>
+          <select id="semester">
+            <option value="">All</option>
+            <option value="1">1</option><option value="2">2</option>
+            <option value="3">3</option><option value="4">4</option>
+            <option value="5">5</option><option value="6">6</option>
+            <option value="7">7</option><option value="8">8</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="division">Division</label>
+          <select id="division">
+            <option value="">All</option>
+            <option value="A">A</option><option value="B">B</option><option value="C">C</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="applyBtn">Apply</button>
+        <button class="btn btn-secondary" id="resetBtn">Reset</button>
+      </div>
+    </div>
+
+    <div class="alert alert-error hidden" id="tableAlert"></div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Roll No</th><th>Name</th><th>Branch</th><th>Sem</th><th>Div</th>
+            <th>Parent</th><th>Parent Mobile</th><th>Status</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="studentsBody">
+          <tr><td colspan="9" class="loading">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/students.js"></script>
+</body>
+</html>

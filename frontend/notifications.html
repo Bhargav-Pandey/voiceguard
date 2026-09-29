@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notifications — Attendance Alert System</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <span class="brand">📋 Attendance Alert System</span>
+    <nav></nav>
+    <span class="spacer"></span>
+    <div class="user-box" id="userBox"></div>
+  </header>
+
+  <main class="container">
+    <div class="page-header">
+      <div>
+        <h1>Notifications</h1>
+        <div class="subtitle">Parent notification history (demo mode: messages are simulated)</div>
+      </div>
+      <button class="btn btn-secondary" id="exportBtn">Export to Excel</button>
+    </div>
+
+    <div class="card mb-2">
+      <div class="filters" style="margin-bottom:0">
+        <div class="field">
+          <label for="search">Search</label>
+          <input type="text" id="search" placeholder="Student, parent, mobile…" />
+        </div>
+        <div class="field">
+          <label for="status">Status</label>
+          <select id="status">
+            <option value="">All</option>
+            <option value="Pending">Pending</option>
+            <option value="Simulated Sent">Simulated Sent</option>
+            <option value="Sent">Sent</option>
+            <option value="Failed">Failed</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="startDate">From</label>
+          <input type="date" id="startDate" />
+        </div>
+        <div class="field">
+          <label for="endDate">To</label>
+          <input type="date" id="endDate" />
+        </div>
+        <button class="btn btn-primary" id="applyBtn">Apply</button>
+        <button class="btn btn-secondary" id="resetBtn">Reset</button>
+      </div>
+    </div>
+
+    <div class="alert alert-error hidden" id="tableAlert"></div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Student</th><th>Parent</th><th>Subject</th><th>Date</th>
+            <th>Lecture</th><th>Channel</th><th>Status</th><th>Sent Time</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="notifBody">
+          <tr><td colspan="9" class="loading">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/notifications.js"></script>
+</body>
+</html>
