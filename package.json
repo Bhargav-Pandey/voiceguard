@@ -2,10 +2,10 @@
   "name": "attendance-alert-system",
   "private": true,
   "scripts": {
-    "dev": "cd backend && if [ ! -x .venv/bin/python ]; then python3 -m venv .venv && .venv/bin/pip install -q -r requirements.txt; fi && exec .venv/bin/python -m uvicorn app:app --host 0.0.0.0 --port ${PORT:-3000}",
-    "start": "cd backend && if [ ! -x .venv/bin/python ]; then python3 -m venv .venv && .venv/bin/pip install -q -r requirements.txt; fi && exec .venv/bin/python -m uvicorn app:app --host 0.0.0.0 --port ${PORT:-3000}",
-    "seed": "python3 sample_data/seed_demo_data.py",
-    "test": "cd backend && PY=python3; [ -x .venv/bin/python ] && PY=.venv/bin/python; \"$PY\" smoke_test.py"
+    "dev": "if [ -f backend/app.py ]; then cd backend; elif [ ! -f app.py ]; then echo 'error: cannot locate backend/app.py' >&2; exit 1; fi; if [ -x .venv/bin/python ]; then PY=.venv/bin/python; else python3 -m venv .venv && .venv/bin/pip install -q -r requirements.txt && PY=.venv/bin/python || PY=python3; fi; exec \"$PY\" -m uvicorn app:app --host :: --port \"${PORT:-5173}\"",
+    "start": "if [ -f backend/app.py ]; then cd backend; elif [ ! -f app.py ]; then echo 'error: cannot locate backend/app.py' >&2; exit 1; fi; if [ -x .venv/bin/python ]; then PY=.venv/bin/python; else python3 -m venv .venv && .venv/bin/pip install -q -r requirements.txt && PY=.venv/bin/python || PY=python3; fi; exec \"$PY\" -m uvicorn app:app --host :: --port \"${PORT:-5173}\"",
+    "seed": "if [ -f sample_data/seed_demo_data.py ]; then S=sample_data/seed_demo_data.py; V=backend/.venv/bin/python; else S=../sample_data/seed_demo_data.py; V=.venv/bin/python; fi; if [ -x \"$V\" ]; then exec \"$V\" \"$S\"; else exec python3 \"$S\"; fi",
+    "test": "if [ -f backend/smoke_test.py ]; then cd backend; fi; if [ -x .venv/bin/python ]; then exec .venv/bin/python smoke_test.py; else exec python3 smoke_test.py; fi"
   },
   "dependencies": {
     "@vly-ai/integrations": "^0.6.14"
